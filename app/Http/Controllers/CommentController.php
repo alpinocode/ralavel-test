@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\View\View;
 use App\Models\Comment;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+
 
 
 class CommentController extends Controller
@@ -16,7 +18,7 @@ class CommentController extends Controller
      */
     public function index():View
     {
-        return view('comment', [
+        return view('comment.index', [
             'comments' =>Comment::with('user')->latest()->get()
         ]);
     }
@@ -52,9 +54,14 @@ class CommentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Comment $comment)
+    public function edit(Comment $comment,Request $request):View
     {
-        //
+        Gate::authorize('update', $comment);
+
+
+        return view('comment.edit', [
+            'comments' => $comment
+        ]);
     }
 
     /**
@@ -62,14 +69,27 @@ class CommentController extends Controller
      */
     public function update(Request $request, Comment $comment)
     {
-        //
+        Gate::authorize('update', $comment);
+
+        $validated = $request->validate([
+            'message' => 'required|string|max:255'
+        ]);
+
+
+        
+        $comment->update($validated);
+        return redirect(route('comments.index'));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Comment $comment)
+    public function destroy(Comment $comment):RedirectResponse
     {
-        //
+        Gate::authorize('delete', $comment);
+
+        $comment->delete();
+
+        return redirect(route('comments.index'));
     }
 }

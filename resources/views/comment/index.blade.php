@@ -23,7 +23,33 @@
                             <div>
                                 <span class="text-gray-800">{{ $comment->user->name }}</span>
                                 <small class="ml-2 text-sm text-gray-600">{{ $comment->created_at->format('j M Y, g:i a') }}</small>
-                            </div>
+                                @unless ($comment->created_at->eq($comment->updated_at))
+                                <small class="text-sm text-gray-600"> &middot; {{ __('edit') }}</small>
+                            @endunless
+                        </div>
+                        @if ($comment->user->is(auth()->user()))
+                            <x-dropdown>
+                                <x-slot name="trigger">
+                                    <button>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    <x-dropdown-link :href="route('comments.edit', $comment)">
+                                        {{ __('Edit') }}
+                                    </x-dropdown-link>
+                                    <form method="POST" action="{{route('comments.destroy', $comment)}}">
+                                        @csrf
+                                        @method('delete')
+                                        <x-dropdown-link :href="route('comments.destroy', $comment)" onclick="event.preventDefault(); this.closest('form').submit();">
+                                            {{ __('Delete') }}
+                                        </x-dropdown-link>
+                                    </form>
+                                </x-slot>
+                            </x-dropdown>
+                        @endif
                         </div>
                         <p class="mt-4 text-lg text-gray-900">{{ $comment->message }}</p>
                     </div>
